@@ -4,6 +4,7 @@ WORKDIR /app
 
 # 1. Copy package definitions and install dependencies
 COPY package*.json ./
+ENV HOST=0.0.0.0
 RUN npm install && chown -R node:node /app
 
 # 2. Copy ALL project files (configs, assets, public, src)

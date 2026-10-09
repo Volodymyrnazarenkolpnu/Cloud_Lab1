@@ -40,3 +40,9 @@ jobs:
             --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --image "${{ secrets.ACR_NAME }}.azurecr.io/server:${{ github.sha }}"
+          
+          az containerapp update \
+            --name ${{ secrets.CLIENT_APP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --image "${{ secrets.ACR_NAME }}.azurecr.io/client:${{ github.sha }}"
+
