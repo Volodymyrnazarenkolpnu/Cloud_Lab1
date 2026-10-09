@@ -1,0 +1,39 @@
+
+.NewsSectionDiv{
+    width: 1200px;
+}
+
+.TitleText{
+    font-size: 26px;
+    font-weight: 600;
+    margin: 22px 0;
+}
+
+.BigNewsBoxDiv{
+    max-width: 400px;
+    margin: 20px 2px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.RegText{
+    font-size:16px;
+    word-wrap: break-word;
+    margin: 20px 0;
+}
+
+.NewsBoxButton{
+    padding: 10px 15px;
+    background-color: #f37a1f;
+    color: white;
+    border: 1px solid #f37a1f;
+    width: 25%;
+    display: flex;
+    justify-content: center;
+}
+
+.NewsBoxCardDiv{
+    display:flex;
+    flex-direction: row;
+}

@@ -1,0 +1,38 @@
+
+.Section2Div{
+    width: 1200px;
+    margin: 60px 2px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.Section2Button{
+    height: 40px;
+    width: 40px;
+    border-radius: 20px;
+    color: white;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.MiniItemCard{
+    display: flex;
+    flex-direction: column;
+    width: 170px;
+    height: 220px;
+    margin: 0 10px;
+    justify-content: space-between;
+    align-items: center;
+    a {
+        margin: 10px;
+    }
+}
+
+.MiniItemCardImg{
+    width: 80%;
+    height: 60%;
+    margin-top: 10px;
+}

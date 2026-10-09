@@ -1,0 +1,38 @@
+services:
+  client:
+    build: ./Client
+    container_name: client
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_SERVER: "localhost"
+    depends_on:
+      - server
+
+  server:
+    build: ./Server
+    container_name: server
+    ports:
+      - "5050:5050"
+    environment:
+      DATABASE: WEB
+      PASSWORD: 1111
+      HOST: db
+      USER: mysqladmin
+  db:
+    image: mysql:8.0
+    container_name: db
+    environment:  
+      MYSQL_ROOT_PASSWORD: 1111
+      MYSQL_DATABASE: WEB
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", 'mysql --user=root --password=1111 --execute="SHOW DATABASES;"']
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db_data:

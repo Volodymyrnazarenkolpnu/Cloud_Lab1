@@ -1,0 +1,59 @@
+name: Deploy Frontend and Backend
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 'Az CLI login via OIDC'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: push to ACR
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
+          
+          SERVER_TAG="${{ secrets.ACR_NAME }}.azurecr.io/server:${{ github.sha }}"
+          docker build -t $SERVER_TAG ./Server
+          docker push $SERVER_TAG
+
+          CLIENT_TAG="${{ secrets.ACR_NAME }}.azurecr.io/client:${{ github.sha }}"
+          docker build -t $CLIENT_TAG ./Client
+          docker push $CLIENT_TAG
+
+      - name: Deploy to azure
+        run: |
+          SERVER_TAG="${{ secrets.ACR_NAME }}.azurecr.io/server:${{ github.sha }}"
+          az container create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name ${{ secrets.SERVER_ACI_NAME }} \
+            --image "${{ secrets.ACR_NAME }}.azurecr.io/server:${{ github.sha }}" \
+            --vnet "${{ secrets.PREFIX }}-vnet" \
+            --subnet "aci-subnet" \
+            --registry-login-server "${{ secrets.ACR_NAME }}.azurecr.io" \
+            --registry-username "${{ secrets.ACR_NAME }}" \
+            --registry-password "$ACR_PASSWORD"
+
+          CLIENT_TAG="${{ secrets.ACR_NAME }}.azurecr.io/client:${{ github.sha }}"
+          az container create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name ${{ secrets.CLIENT_ACI_NAME }} \
+            --image "${{ secrets.ACR_NAME }}.azurecr.io/client:${{ github.sha }}" \
+            --vnet "${{ secrets.PREFIX }}-vnet" \
+            --subnet "aci-subnet" \
+            --registry-login-server "${{ secrets.ACR_NAME }}.azurecr.io" \
+            --registry-username "${{ secrets.ACR_NAME }}" \
+            --registry-password "$ACR_PASSWORD"

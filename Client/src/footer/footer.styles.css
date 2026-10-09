@@ -1,0 +1,62 @@
+
+ .LogoDiv {
+    margin: 0 14px;
+}
+
+ .OrangeSectionDiv {
+    background-color: #f37a1f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 90px;
+    svg {
+        font-size: 26px;
+        color: white;
+    }
+}
+
+ .GraySectionDiv {
+    background-color: #ededed;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+ .TextBlockDiv {
+    display: flex;
+    justify-content: space-between;
+    width: 1200px;
+    padding: 40px 0;
+    border-width: 0 0 1px 0;
+    border-style: solid;
+    border-color: #b1b1b1;
+}
+
+ .TextBlock {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+}
+
+ .BoldText {
+    font-weight: 600;
+    margin-bottom: 28px;
+}
+
+ .RegText {
+    font-weight: 400;
+    margin: 5px 0px;
+    overflow-wrap: break-word;
+}
+
+ .UnderTextDiv {
+    margin-top: 30px;
+    margin-bottom: 20px;
+    width: 1200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    a{
+        margin: 5px 5px;
+    }
+}

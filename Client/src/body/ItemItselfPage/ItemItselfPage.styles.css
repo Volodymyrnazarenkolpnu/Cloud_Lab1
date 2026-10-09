@@ -1,0 +1,56 @@
+.ItemPageContainer {
+    margin: 0 auto;
+    display: flex;
+    width: 1200px;
+}
+
+.titleText {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.infoDiv {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items:start;
+    hr {
+        width: 100%;
+    }
+}
+
+.buyButton {
+    width: 100%;
+    height: 50px;
+    background-color: #f37a1f;
+    border-width: 0px;
+    margin: 10px 0;
+    color: white;
+}
+
+.rightInfoPanel {
+    width: 50%;
+}
+
+.pictureDiv {
+    width: 50%;
+}
+
+.greyTextArea {
+    width: 100%;
+    background-color: #ededed;
+}
+
+.greyTextRow {
+    margin: 5px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.greyTextColumn {
+    width: 50%;
+    margin: 8px;
+    display: flex;
+    flex-direction: column;
+}

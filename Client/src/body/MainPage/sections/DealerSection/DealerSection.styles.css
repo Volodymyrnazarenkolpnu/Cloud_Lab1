@@ -1,0 +1,48 @@
+.MainDealerDiv{
+    margin: 20px;
+    width: 1200px;
+    background-color: #f37a1f;
+    display: flex;
+    justify-content: space-between;
+}
+
+.TextDiv{
+    margin: 120px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.BigText{
+    color: white;
+    word-wrap: break-word;
+    font-size:28px;
+    font-weight:600px;
+}
+
+.SmallText{
+    color: white;
+    word-wrap: break-word;
+    font-size: 16px;
+}
+
+.ButtonDiv{
+    display: flex;
+    justify-content: space-around;
+}
+
+.WhiteButon{
+    width:150px;
+    height: 60px;
+    background-color: white;
+    border: 1px solid white;
+}
+
+.OrangeButon{
+    width:180px;
+    height: 60px;
+    background-color: #f37a1f;
+    color: white;
+    border: 1px solid white;
+}
+

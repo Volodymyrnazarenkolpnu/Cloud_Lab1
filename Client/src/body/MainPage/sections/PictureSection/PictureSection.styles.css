@@ -1,0 +1,11 @@
+
+.Section1Div{
+    margin:1px;
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.AlignBodyDiv{
+    width: 1200px;
+}
