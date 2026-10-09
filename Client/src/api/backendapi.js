@@ -1,6 +1,6 @@
 import axios from "axios";
 var server = process.env.REACT_APP_SERVER ? `http://${process.env.REACT_APP_SERVER}:5050` : "";
-export let link = server
+export let link = server + "/api"
 
 export async function PullItemsFiltered(MinWeight = null, MaxWeight = null, MinPrice = null, MaxPrice = null, MinRPM = null, MaxRPM = null, SortType = null, SortDirection = null, searchQuery = "", VarOf = null, Limit = 0)  {
         let lst = [MinWeight, MaxWeight, MinPrice, MaxPrice, MinRPM, MaxRPM]

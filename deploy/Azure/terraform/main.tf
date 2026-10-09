@@ -295,7 +295,7 @@ resource "azurerm_application_gateway" "appgw" {
   probe {
     name                = "server-probe"
     protocol            = "Http"
-    path                = "/health"
+    path                = "/api/health"
     interval            = 30
     timeout             = 10
     unhealthy_threshold = 3
@@ -348,7 +348,7 @@ resource "azurerm_application_gateway" "appgw" {
 
     path_rule {
       name                       = "api-routes"
-      paths                      = ["/getall", "/get/*", "/cart", "/cart/*", "/health"]
+      paths                      = ["/api/getall", "/api/get/*", "/api/cart", "/api/cart/*", "/api/health"]
       backend_address_pool_name  = "aca-backend-pool"
       backend_http_settings_name = "server-http-settings"
     }
