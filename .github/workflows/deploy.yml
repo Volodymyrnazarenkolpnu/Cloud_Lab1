@@ -45,7 +45,7 @@ jobs:
             --subnet "aci-subnet" \
             --registry-login-server "${{ secrets.ACR_NAME }}.azurecr.io" \
             --registry-username "${{ secrets.ACR_NAME }}" \
-            --registry-password "$ACR_PASSWORD"
+            --registry-password "${{ secrets.ACR_PASSWORD }}"
 
           CLIENT_TAG="${{ secrets.ACR_NAME }}.azurecr.io/client:${{ github.sha }}"
           az container create \
@@ -56,4 +56,4 @@ jobs:
             --subnet "aci-subnet" \
             --registry-login-server "${{ secrets.ACR_NAME }}.azurecr.io" \
             --registry-username "${{ secrets.ACR_NAME }}" \
-            --registry-password "$ACR_PASSWORD"
+            --registry-password "${{ secrets.ACR_PASSWORD }}"
