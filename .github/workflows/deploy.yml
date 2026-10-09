@@ -53,7 +53,7 @@ jobs:
             --subnet "aci-subnet" \
             --registry-login-server "${{ secrets.ACR_NAME }}.azurecr.io" \
             --registry-username "${{ secrets.ACR_NAME }}" \
-            --registry-password "$ACR_PASSWORD"
+            --registry-password "$ACR_PASSWORD" \
             --environment-variables DATABASE=WEB USER=mysqladmin HOST="$DB_HOST" PORT=5050 \
             --secure-environment-variables PASSWORD="${{ secrets.DB_PASSWORD }}"
 
