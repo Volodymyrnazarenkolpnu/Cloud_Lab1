@@ -40,16 +40,26 @@ jobs:
           az container create \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --name ${{ secrets.SERVER_ACI_NAME }} \
+            --os-type Linux \
+            --cpu 0.5 \
+            --memory 0.5 \
+            --ports 5050 \
             --image "${{ secrets.ACR_NAME }}.azurecr.io/server:${{ github.sha }}" \
             --vnet "${{ secrets.PREFIX }}-vnet" \
             --subnet "aci-subnet" \
             --registry-login-server "${{ secrets.ACR_NAME }}.azurecr.io" \
             --registry-username "${{ secrets.ACR_NAME }}" \
             --registry-password "${{ secrets.ACR_PASSWORD }}"
+            --environment-variables DATABASE=WEB USER=mysqladmin HOST="${{ secrets.PREFIX }}-mysql.mysql.database.azure.com" PORT=5050 \
+            --secure-environment-variables PASSWORD="${{ secrets.DB_PASSWORD }}"
 
           CLIENT_TAG="${{ secrets.ACR_NAME }}.azurecr.io/client:${{ github.sha }}"
           az container create \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --os-type Linux \ 
+            --cpu 0.5 \
+            --memory 0.5 \
+            --ports 5050 \
             --name ${{ secrets.CLIENT_ACI_NAME }} \
             --image "${{ secrets.ACR_NAME }}.azurecr.io/client:${{ github.sha }}" \
             --vnet "${{ secrets.PREFIX }}-vnet" \
