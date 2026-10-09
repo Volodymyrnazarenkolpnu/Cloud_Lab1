@@ -163,6 +163,7 @@ resource "azurerm_container_app" "app" {
   }
 
   template {
+    min_replicas = 1
     container {
       name   = "server"
       image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest" 
