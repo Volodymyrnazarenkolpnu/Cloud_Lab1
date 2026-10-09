@@ -36,6 +36,7 @@ jobs:
 
       - name: Deploy to azure
         run: |
+          ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query "passwords[0].value" -o tsv)
           SERVER_TAG="${{ secrets.ACR_NAME }}.azurecr.io/server:${{ github.sha }}"
           az container export -g ${{ secrets.AZURE_RESOURCE_GROUP }} -n ${{ secrets.SERVER_ACI_NAME }} -f server.yaml
           sed -i "s|image: .*|image: $SERVER_TAG|g" server.yaml
