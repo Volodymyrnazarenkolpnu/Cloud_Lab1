@@ -6,10 +6,10 @@ output "acr_name" {
   value = azurerm_container_registry.acr.name
 }
 
-output "server_aci_name" {
-  value = azurerm_container_group.server.name
+output "acr_login_server" {
+  value = azurerm_container_registry.acr.login_server
 }
 
-output "client_aci_name" {
-  value = azurerm_container_group.client.name
+output "container_app_name" {
+  value = azurerm_container_app.app.name
 }
