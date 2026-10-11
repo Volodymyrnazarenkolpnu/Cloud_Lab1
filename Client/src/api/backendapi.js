@@ -19,7 +19,7 @@ export const loginRequest = {
   scopes: [`api://${process.env.REACT_APP_BACKEND_CLIENT_ID}/userAccess`]
 };
 
-export var getToken = () => {
+export async function getToken() {
     const response = await instance.acquireTokenSilent({
         ...loginRequest,
         account: accounts[0]
