@@ -1,39 +1,10 @@
 import axios from "axios";
-import { LogLevel, PublicClientApplication } from "@azure/msal-browser";
-import { useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
-
 var server = process.env.REACT_APP_SERVER ? `http://${process.env.REACT_APP_SERVER}:5050` : "";
 export let link = server + "/api"
 
-
-export const msalConfig = {
-    auth: {
-        clientId: process.env.REACT_APP_CLIENT_ID,
-        authority: `https://login.microsoftonline.com/${process.env.REACT_APP_TENANT_ID}`,
-        redirectUri: typeof window !== "undefined" ? window.location.origin : "/",
-    },
-    cache: {
-        cacheLocation: "sessionStorage",
-        storeAuthStateInCookie: false,
-    }
-};
-
-const msalInstance = new PublicClientApplication(msalConfig);
-export const loginRequest = {
-  scopes: [`api://${process.env.REACT_APP_BACKEND_CLIENT_ID}/userAccess`]
-};
-
 export async function getToken() {
-    const account = msalInstance.getActiveAccount()
-    const response = await msalInstance.acquireTokenSilent({
-        ...loginRequest,
-        account: account
-      });
-
-    const token = response.accessToken;
-    return token
+    return "client-token-lab1"
 }
-
 
 export async function PullItemsFiltered(MinWeight = null, MaxWeight = null, MinPrice = null, MaxPrice = null, MinRPM = null, MaxRPM = null, SortType = null, SortDirection = null, searchQuery = "", VarOf = null, Limit = 0)  {
     let token = getToken();
