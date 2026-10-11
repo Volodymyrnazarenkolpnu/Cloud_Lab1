@@ -5,7 +5,7 @@ import ItemImage from "../../images/MA032000005-2-ratio-width-500-jpg.webp"
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux"
 import {cart_set, cart_add, cartValue, commands_execute, commands_set, commandsValue, itemsValue} from "../../rootReducer";
-import { GetOneItem, PullItemsFiltered, link} from "../../api/backendapi";
+import { GetOneItem, PullItemsFiltered, GetUserCart, link} from "../../api/backendapi";
 
 
 
@@ -40,7 +40,7 @@ export const ItemItself = () => {
     useEffect(() => {
         if (!cartItemsStorage.loaded) {
             const load = async () => {
-                const loadedItems = await axios.get(`${link}/cart?userid=0`)
+                const loadedItems = GetUserCart(0);
                 return loadedItems.data.data;
             }
             load().then((data) => {dispatch(cart_set(data))})
@@ -54,7 +54,7 @@ export const ItemItself = () => {
         console.log(unfilteredCart)
         let filteredCart = unfilteredCart.filter(item => {return item.item == currentId})
         if (filteredCart.length != 0) {
-            var loadedItems = await axios.get(`${link}/cart?userid=${JSON.parse(localStorage.getItem("redux_user")).id}`)
+            var loadedItems = GetUserCart(JSON.parse(localStorage.getItem("redux_user")).id)
             loadedItems.data.data.filter(item => {return item.item == currentId})
             unfilteredCart = JSON.parse(JSON.stringify(cartItemsStorage.items.filter(item => {return item.item != currentId})))
             filteredCart[0].amount += amount.amountInput == "" ? 1 : JSON.parse(amount.amountInput);
@@ -72,7 +72,7 @@ export const ItemItself = () => {
     useEffect(() => {
         if (commandsStorage.commands.length != 0) {
             console.log(commandsStorage.commands)
-            axios.get(`${link}/getall?Limit=3&SortType=price&SortDirection=ASC`).then(() => {dispatch(commands_execute())}, () => {alert("Working offline")})
+            PullItemsFiltered(null, null,  null, null,  null,  null,  "price", "ASC", "", id, 3).then(() => {dispatch(commands_execute())}, () => {alert("Working offline")})
         }
     }, [comstate])
 

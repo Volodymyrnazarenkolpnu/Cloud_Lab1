@@ -190,6 +190,14 @@ resource "azurerm_container_app" "app" {
         name  = "PORT"
         value = "5050"
       }
+      env {
+        name = "AZURE_TENANT_ID"
+        value = "7631cd62-5187-4e15-8b8e-ef653e366e7a"
+      }
+      env {
+        name = "AZURE_CLIENT_ID"
+        value = "4aa03e53-cddb-48f7-bfd0-7170c394c6f6"
+      }
     }
   }
 
@@ -231,6 +239,15 @@ resource "azurerm_container_app" "client" {
       image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
       cpu    = 0.25
       memory = "0.5Gi"
+
+      env {
+        name = "REACT_APP_CLIENT_ID"
+        value = "9cea8173-9764-4508-aa55-47dbb48f76b0"
+      }
+      env {
+        name = "REACT_APP_TENANT_ID"
+        value = "7631cd62-5187-4e15-8b8e-ef653e366e7a"
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { compose, createSlice } from "@reduxjs/toolkit"
+import { getToken } from './api/backendapi'
 
 function nextID(lst) {
     const nextIDNum = lst.reduce((maxID, item) => Math.max(item.id, maxID), -1)
@@ -14,14 +15,15 @@ const sqlCommandsSlice = createSlice({
             state.commands = action.payload;
         },
         commands_execute: (state, action) => {
+            let token = getToken()
             for (let command of state.commands) {
                 if (command.type == 0) {
-                    axios.post(command.command, command.args ? command.args : null)
+                    axios.post(command.command, command.args ? command.args : null, {headers: {"Authorization" : `Bearer ${token}`}})
                 } else if (command.type == 1) {
-                    axios.put(command.command)
+                    axios.put(command.command, {headers: {"Authorization" : `Bearer ${token}`}})
                     console.log("a")
                 } else if (command.type == 2) {
-                    axios.delete(command.command)
+                    axios.delete(command.command, {headers: {"Authorization" : `Bearer ${token}`}})
                 }
             }
             state.commands = []
