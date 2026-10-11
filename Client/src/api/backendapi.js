@@ -1,24 +1,24 @@
 import axios from "axios";
 import { LogLevel, PublicClientApplication } from "@azure/msal-browser";
 import { useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
-const msalInstance = new PublicClientApplication(msalConfig);
 
 var server = process.env.REACT_APP_SERVER ? `http://${process.env.REACT_APP_SERVER}:5050` : "";
 export let link = server + "/api"
 
 
 export const msalConfig = {
-  auth: {
-    clientId: process.env.REACT_APP_CLIENT_ID,
-    authority: `https://login.microsoftonline.com/${process.env.REACT_APP_TENANT_ID}`,
-    redirectUri: typeof window !== "undefined" ? window.location.origin : "/",
-  },
-  cache: {
-    cacheLocation: "sessionStorage",
-    storeAuthStateInCookie: false,
-  }
+    auth: {
+        clientId: process.env.REACT_APP_CLIENT_ID,
+        authority: `https://login.microsoftonline.com/${process.env.REACT_APP_TENANT_ID}`,
+        redirectUri: typeof window !== "undefined" ? window.location.origin : "/",
+    },
+    cache: {
+        cacheLocation: "sessionStorage",
+        storeAuthStateInCookie: false,
+    }
 };
 
+const msalInstance = new PublicClientApplication(msalConfig);
 export const loginRequest = {
   scopes: [`api://${process.env.REACT_APP_BACKEND_CLIENT_ID}/userAccess`]
 };
