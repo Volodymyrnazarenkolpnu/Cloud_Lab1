@@ -46,20 +46,20 @@ export async function PullItemsFiltered(MinWeight = null, MaxWeight = null, MinP
         linksql += `&Name=${searchQuery.toLowerCase().trim().replace(/\s+/g, "")}`;
     }
     console.log(linksql)
-    let res = (await axios.get(linksql, {headers: {"Authorization" : `Bearer ${token}`}}))
+    let res = (await axios.get(linksql, {headers: {"x-client-key" : `Bearer ${token}`}}))
     return res
 }
 
 export const GetUserCart = async (id) => {
     let token = getToken();
     let sql = ` ${link}/cart?userid=${id}`
-    let res = await axios.get(sql, {headers: {"Authorization" : `Bearer ${token}`}})
+    let res = await axios.get(sql, {headers: {"x-client-key" : `Bearer ${token}`}})
     return res
 }
 
 export const GetOneItem = async (id) => {
     let token = getToken();
     let sql = ` ${link}/get/${id}`
-    let res = await axios.get(sql, {headers: {"Authorization" : `Bearer ${token}`}})
+    let res = await axios.get(sql, {headers: {"x-client-key" : `Bearer ${token}`}})
     return res
 }
