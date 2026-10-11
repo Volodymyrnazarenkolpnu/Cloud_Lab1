@@ -1,7 +1,11 @@
 import axios from "axios";
-import { LogLevel } from "@azure/msal-browser";
+import { LogLevel, PublicClientApplication } from "@azure/msal-browser";
+import { useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
+const msalInstance = new PublicClientApplication(msalConfig);
+
 var server = process.env.REACT_APP_SERVER ? `http://${process.env.REACT_APP_SERVER}:5050` : "";
 export let link = server + "/api"
+
 
 export const msalConfig = {
   auth: {
@@ -20,9 +24,10 @@ export const loginRequest = {
 };
 
 export async function getToken() {
-    const response = await instance.acquireTokenSilent({
+    const account = msalInstance.getActiveAccount()
+    const response = await msalInstance.acquireTokenSilent({
         ...loginRequest,
-        account: accounts[0]
+        account: account
       });
 
     const token = response.accessToken;
@@ -75,13 +80,14 @@ export async function PullItemsFiltered(MinWeight = null, MaxWeight = null, MinP
 }
 
 export const GetUserCart = async (id) => {
-    token = getToken();
+    let token = getToken();
     let sql = ` ${link}/cart?userid=${id}`
     let res = await axios.get(sql, {headers: {"Authorization" : `Bearer ${token}`}})
     return res
 }
 
 export const GetOneItem = async (id) => {
+    let token = getToken();
     let sql = ` ${link}/get/${id}`
     let res = await axios.get(sql, {headers: {"Authorization" : `Bearer ${token}`}})
     return res
