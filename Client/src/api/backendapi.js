@@ -1,8 +1,9 @@
 import axios from "axios";
+console.log(process.env.REACT_APP_SERVER)
 var server = process.env.REACT_APP_SERVER ? `http://${process.env.REACT_APP_SERVER}:5050` : "";
 export let link = server + "/api"
 
-export async function getToken() {
+export function getToken() {
     return "client-token-lab1"
 }
 
@@ -46,20 +47,20 @@ export async function PullItemsFiltered(MinWeight = null, MaxWeight = null, MinP
         linksql += `&Name=${searchQuery.toLowerCase().trim().replace(/\s+/g, "")}`;
     }
     console.log(linksql)
-    let res = (await axios.get(linksql, {headers: {"x-client-key" : `Bearer ${token}`}}))
+    let res = (await axios.get(linksql, {headers: {"x-client-key" : `${token}`}}))
     return res
 }
 
 export const GetUserCart = async (id) => {
     let token = getToken();
     let sql = ` ${link}/cart?userid=${id}`
-    let res = await axios.get(sql, {headers: {"x-client-key" : `Bearer ${token}`}})
+    let res = await axios.get(sql, {headers: {"x-client-key" : `${token}`}})
     return res
 }
 
 export const GetOneItem = async (id) => {
     let token = getToken();
     let sql = ` ${link}/get/${id}`
-    let res = await axios.get(sql, {headers: {"x-client-key" : `Bearer ${token}`}})
+    let res = await axios.get(sql, {headers: {"x-client-key" : `${token}`}})
     return res
 }

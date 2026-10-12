@@ -25,6 +25,8 @@ services:
     environment:  
       MYSQL_ROOT_PASSWORD: 1111
       MYSQL_DATABASE: WEB
+      AZURE_TENANT_ID: 7631cd62-5187-4e15-8b8e-ef653e366e7a
+      AZURE_CLIENT_ID: 4aa03e53-cddb-48f7-bfd0-7170c394c6f6
     volumes:
       - db_data:/var/lib/mysql
       - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql:ro

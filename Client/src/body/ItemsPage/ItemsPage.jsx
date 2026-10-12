@@ -144,7 +144,7 @@ function ItemPage() {
                         <hr></hr>
                 </div>
                 <div className="ItemStorageDiv">
-                   {items.length != 0 && items.map((item)=>
+                   {items && items.length != 0 && items.map((item)=>
                     (
                         <ItemCard text={item.name} price={item.price} id={item.id}/>
                     )

@@ -18,12 +18,12 @@ const sqlCommandsSlice = createSlice({
             let token = getToken()
             for (let command of state.commands) {
                 if (command.type == 0) {
-                    axios.post(command.command, command.args ? command.args : null, {headers: {"x-client-key" : `Bearer ${token}`}})
+                    axios.post(command.command, command.args ? command.args : null, {headers: {"x-client-key" : `${token}`}})
                 } else if (command.type == 1) {
-                    axios.put(command.command, {headers: {"x-client-key" : `Bearer ${token}`}})
+                    axios.put(command.command, {headers: {"x-client-key" : `${token}`}})
                     console.log("a")
                 } else if (command.type == 2) {
-                    axios.delete(command.command, {headers: {"x-client-key" : `Bearer ${token}`}})
+                    axios.delete(command.command, {headers: {"x-client-key" : `${token}`}})
                 }
             }
             state.commands = []
