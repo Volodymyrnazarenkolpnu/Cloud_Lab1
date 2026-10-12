@@ -21,7 +21,7 @@ const client = jwksClient({
 });
 
 async function restoreDb() {
-	const path = path.join(__dirname, "backup.sql")
+	const Spath = path.join(__dirname, "backup.sql")
 	const conn = await mysqlPromise.createConnection({
     host: process.env.HOST || "localhost",
     user: process.env.USER || 'mysqladmin',
@@ -36,7 +36,7 @@ async function restoreDb() {
       await conn.end();
       return;
     }
-	let sql = fs.readFileSync(sqlPath, "utf8");
+	let sql = fs.readFileSync(Spath, "utf8");
     sql = sql.replace(/^\uFEFF/, "").replace(/\/\*[\s\S]*?\*\//g, "");
 	
 	const queries = sql
