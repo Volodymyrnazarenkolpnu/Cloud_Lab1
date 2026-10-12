@@ -54,6 +54,7 @@ const middleware = (req, res, next) => {
 		algorithms: ["RS256"]
 	}, (e, result) => {
 		if (e) {
+			console.error(e);
 		return res.status(401).json({
 			error: "Unauthorized",
 			message: `invalid token`
