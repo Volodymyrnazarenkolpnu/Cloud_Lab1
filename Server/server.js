@@ -50,7 +50,7 @@ const middleware = (req, res, next) => {
 		audience: [CLIENT_ID, `api://${CLIENT_ID}`],
 		issuer: [
 			`https://login.microsoftonline.com/${TENANT_ID}/v2.0`
-			`https://sts.windows.net/${AZURE_TENANT_ID}/`
+			`https://sts.windows.net/${TENANT_ID}/`
 		],
 		algorithms: ["RS256"]
 	}, (e, result) => {
