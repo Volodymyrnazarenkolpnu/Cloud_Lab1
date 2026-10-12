@@ -9,7 +9,6 @@ const controller = require("./src/controller/item.controller");
 const { error } = require("console");
 const fs = require("fs");
 const mysqlPromise = require("mysql2/promise");
-const path = require("path");
 
 const TENANT_ID = process.env.AZURE_TENANT_ID;
 const CLIENT_ID = process.env.AZURE_CLIENT_ID;
