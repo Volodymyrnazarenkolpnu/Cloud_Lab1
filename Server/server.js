@@ -7,6 +7,9 @@ const cors = require("cors");
 const path = require("path");
 const controller = require("./src/controller/item.controller");
 const { error } = require("console");
+const fs = require("fs");
+const mysqlPromise = require("mysql2/promise");
+const path = require("path");
 
 const TENANT_ID = process.env.AZURE_TENANT_ID;
 const CLIENT_ID = process.env.AZURE_CLIENT_ID;
@@ -17,6 +20,43 @@ const client = jwksClient({
   rateLimit: true,
   jwksRequestsPerMinute: 10
 });
+
+async function restoreDb() {
+	const path = path.join(__dirname, "backup.sql")
+	const conn = await mysqlPromise.createConnection({
+    host: process.env.HOST || "localhost",
+    user: process.env.USER || 'mysqladmin',
+    password: process.env.PASSWORD,
+    database: process.env.DATABASE,
+    ssl: (process.env.HOST && process.env.HOST !== "localhost" && process.env.HOST !== "db") ? { rejectUnauthorized: false } : undefined
+    });
+
+	const [tables] = await conn.query("SHOW TABLES LIKE 'items'");
+    if (tables.length > 0) {
+      console.log("Database tables already exist. Skipping seed.");
+      await conn.end();
+      return;
+    }
+	let sql = fs.readFileSync(sqlPath, "utf8");
+    sql = sql.replace(/^\uFEFF/, "").replace(/\/\*[\s\S]*?\*\//g, "");
+	
+	const queries = sql
+      .split("\n")
+      .map(l => l.trim())
+      .filter(l => !l.startsWith("--") && l.length > 0)
+      .join("\n")
+      .split(";")
+      .map(q => q.trim())
+      .filter(q => q.length > 0);
+	
+	for (const query of queries) {
+      try {
+        await conn.query(query);
+      } catch (err) {
+        console.warn(err.message);
+      }
+    }
+}
 
 var GetKey = (h, callback) => {
 	client.getSigningKey(h.kid, (e, key) => {
@@ -99,7 +139,9 @@ app.get("/api/health", (req, res) => {
 // app.delete("/delete/:id", controller.delete);
 
 // app.put("/update/:id", controller.update);
-
+restoreDb()
 app.listen(PORT, "0.0.0.0", () => {
         console.log(`Server is running on port ${PORT}.`);
 });
+
+

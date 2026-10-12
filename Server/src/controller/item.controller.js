@@ -12,7 +12,7 @@ const db = mysql.createPool(
    {
       connectionLimit: 10,
       host: process.env.HOST || "localhost",
-      user: process.env.USER ||'mysqladmin',
+      user: process.env.USER || 'mysqladmin',
       password: process.env.PASSWORD,
       database: process.env.DATABASE,
       ssl: (process.env.HOST && process.env.HOST !== "localhost" && process.env.HOST !== "db") ? { rejectUnauthorized: false } : undefined
