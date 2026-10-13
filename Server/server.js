@@ -23,8 +23,8 @@ const client = jwksClient({
 async function restoreDb() {
 	const Spath = path.join(__dirname, "backup.sql")
 	const conn = await mysqlPromise.createConnection({
-    host: process.env.HOST || "localhost",
-    user: process.env.USER || 'mysqladmin',
+    host: process.env.HOST,
+    user: process.env.USER,
     password: process.env.PASSWORD,
     database: process.env.DATABASE,
     ssl: (process.env.HOST && process.env.HOST !== "localhost" && process.env.HOST !== "db") ? { rejectUnauthorized: false } : undefined
@@ -138,7 +138,10 @@ app.get("/api/health", (req, res) => {
 // app.delete("/delete/:id", controller.delete);
 
 // app.put("/update/:id", controller.update);
-restoreDb()
+if (!(process.env.HOST == "localhost") ) {
+	restoreDb()
+
+}
 app.listen(PORT, "0.0.0.0", () => {
         console.log(`Server is running on port ${PORT}.`);
 });

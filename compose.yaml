@@ -1,11 +1,14 @@
 services:
   client:
-    build: ./Client
+    build: 
+      context: ./Client
+      args:
+        REACT_APP_SERVER: "localhost:5050"
     container_name: client
     ports:
       - "3000:3000"
     environment:
-      REACT_APP_SERVER: "localhost"
+      REACT_APP_SERVER: "localhost:5050"
     depends_on:
       - server
 
@@ -18,7 +21,12 @@ services:
       DATABASE: WEB
       PASSWORD: 1111
       HOST: db
-      USER: mysqladmin
+      USER: root
+      AZURE_TENANT_ID: 7631cd62-5187-4e15-8b8e-ef653e366e7a
+      AZURE_CLIENT_ID: 4aa03e53-cddb-48f7-bfd0-7170c394c6f6
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: mysql:8.0
     container_name: db
@@ -31,7 +39,8 @@ services:
       - db_data:/var/lib/mysql
       - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", 'mysql --user=root --password=1111 --execute="SHOW DATABASES;"']
+      
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p1111"]
       interval: 3s
       timeout: 3s
       retries: 10

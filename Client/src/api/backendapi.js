@@ -1,6 +1,6 @@
 import axios from "axios";
 console.log(process.env.REACT_APP_SERVER)
-var server = process.env.REACT_APP_SERVER ? `http://${process.env.REACT_APP_SERVER}:5050` : "";
+var server = process.env.REACT_APP_SERVER ? `http://${process.env.REACT_APP_SERVER}:5050` : "http://localhost:5050";
 export let link = server + "/api"
 
 export function getToken() {
