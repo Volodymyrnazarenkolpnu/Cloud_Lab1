@@ -138,10 +138,7 @@ app.get("/api/health", (req, res) => {
 // app.delete("/delete/:id", controller.delete);
 
 // app.put("/update/:id", controller.update);
-if (!(process.env.HOST == "localhost") ) {
-	restoreDb()
-
-}
+restoreDb()
 app.listen(PORT, "0.0.0.0", () => {
         console.log(`Server is running on port ${PORT}.`);
 });
