@@ -16,6 +16,7 @@ provider "azurerm" {
 resource "azurerm_resource_group" "rg" {
   name     = "${var.prefix}-rg"
   location = var.location
+  
 }
 
 
@@ -137,6 +138,7 @@ resource "azurerm_container_app_environment" "env" {
   resource_group_name            = azurerm_resource_group.rg.name
   infrastructure_subnet_id       = azurerm_subnet.aca_subnet.id
   internal_load_balancer_enabled = true
+  log_analytics_workspace_id     = azurerm_log_analytics_workspace.logs.id
 }
 
 
@@ -218,6 +220,7 @@ resource "azurerm_container_app" "client" {
   container_app_environment_id = azurerm_container_app_environment.env.id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
+  depends_on = [azurerm_container_app.app]
 
   registry {
     server               = azurerm_container_registry.acr.login_server
@@ -377,5 +380,51 @@ resource "azurerm_application_gateway" "appgw" {
     http_listener_name = "http-listener"
     url_path_map_name  = "url-path-map"
     priority           = 100
+  }
+}
+
+resource "azurerm_log_analytics_workspace" "logs" {
+  name                = "${var.prefix}-law"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_monitor_action_group" "alert_group" {
+  name                = "${var.prefix}-action-group"
+  resource_group_name = azurerm_resource_group.rg.name
+  short_name          = "AppAlerts"
+
+  email_receiver {
+    name                    = "admin-email"
+    email_address           = "volodymyr.nazarenko.ir.2024@lpnu.ua"
+    use_common_alert_schema = true
+  }
+}
+
+resource "azurerm_monitor_metric_alert" "http_5xx_alert" {
+  name                = "${var.prefix}-errors"
+  resource_group_name = azurerm_resource_group.rg.name
+  scopes              = [azurerm_container_app.app.id]
+  severity            = 1
+  frequency           = "PT1M"
+  window_size         = "PT5M"
+  criteria {
+    metric_namespace = "Microsoft.App/containerapps"
+    metric_name      = "Requests"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 0
+
+    dimension {
+      name     = "statusCodeCategory"
+      operator = "Include"
+      values   = ["5xx"]
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.alert_group.id
   }
 }
