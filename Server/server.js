@@ -85,6 +85,7 @@ const middleware = (req, res, next) => {
 		})
 	}
 	const token = headers.split(" ")[1]
+	console.log(token);
 	jwt.verify(token, GetKey, {
 		audience: [CLIENT_ID, `api://${CLIENT_ID}`],
 		issuer: [

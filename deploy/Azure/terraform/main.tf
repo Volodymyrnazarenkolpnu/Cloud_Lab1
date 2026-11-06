@@ -128,8 +128,8 @@ resource "azurerm_mysql_flexible_database" "db_schema" {
   name                = "WEB"
   resource_group_name = azurerm_resource_group.rg.name
   server_name         = azurerm_mysql_flexible_server.db.name
-  charset             = "utf8"
-  collation           = "utf8_general_ci"
+  charset             = "utf8mb3"
+  collation           = "utf8mb3_general_ci"
 }
 
 resource "azurerm_container_app_environment" "env" {
@@ -139,6 +139,11 @@ resource "azurerm_container_app_environment" "env" {
   infrastructure_subnet_id       = azurerm_subnet.aca_subnet.id
   internal_load_balancer_enabled = true
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.logs.id
+  lifecycle {
+    ignore_changes = [
+      infrastructure_resource_group_name,
+    ]
+  }
 }
 
 
@@ -166,9 +171,20 @@ resource "azurerm_container_app" "app" {
 
   template {
     min_replicas = 1
+    max_replicas = 4
+    
+    custom_scale_rule {
+      name = "cpu-scale"
+      custom_rule_type = "cpu"
+      metadata = {
+        type = "Utilization"
+        value = "60"
+      }
+    }
+    
     container {
       name   = "server"
-      image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest" 
+      image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
       cpu    = 0.25
       memory = "0.5Gi"
 
