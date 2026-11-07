@@ -24,6 +24,8 @@ async function gettoken() {
             if (data.access_token) {
                 console.log(data.access_token)
                 return data.access_token;
+            } else {
+                console.log(data);
             }
         } catch (err) {
             console.warn("TOKEN IS MISSING");
@@ -32,6 +34,10 @@ async function gettoken() {
 }
 
 async function prepare({method, path, getBody, token, df, mf}) {
+    let nrequests = 0;
+    let srequests = 0;
+    let frequests = 0;
+    const latencies = [];
     const start_time = Date.now();
     const end_time = start_time + 60 * 1000
     async function worker() {
@@ -40,19 +46,40 @@ async function prepare({method, path, getBody, token, df, mf}) {
             try {
                 const body = getBody ? JSON.stringify(getBody()) : undefined;
                 const res = await fetch(`${url}/${path}`, {
-                        method,
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer: ${token}`
-                        },
-                        body
+                    method,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer: ${token}`
+                    },
+                    body
                 });
+                const reqduration = Date.now() - reqStart;
+                latencies.push(reqduration)
+                nrequests++;
+                if (res.status >= 200 && res.status < 400) {
+                    srequests++;
+                } else {
+                    frequests++;
+                }
             } catch (err) {
+                nrequests++;
+                frequests++;
             }
         }
     }
-
     await Promise.all(Array.from({length: Math.floor(N * mf / df)}, () => worker()));
+    const acduration = (Date.now() - start_time) / 1000;
+    latencies.sort((a, b) => a - b);
+
+    const avglatency = latencies.reduce((a, b) => a+b, 0) / (latencies.length || 1);
+    const p95 = latencies[Math.floor(latencies.length * 0.95)] || 0;
+    const p99 = latencies[Math.floor(latencies.length * 0.99)] || 0;
+    console.log(`total: ${nrequests}`);
+    console.log(`good: ${srequests}`);
+    console.log(`bad: ${frequests}`);
+    console.log(`latencyAvg: ${avglatency}`);
+    console.log(`p95 ${p95}`);
+    console.log(`P99 ${p99}`);
 }
 
 async function main() {

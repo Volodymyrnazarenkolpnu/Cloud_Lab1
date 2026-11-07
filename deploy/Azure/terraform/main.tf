@@ -444,3 +444,90 @@ resource "azurerm_monitor_metric_alert" "http_5xx_alert" {
     action_group_id = azurerm_monitor_action_group.alert_group.id
   }
 }
+
+resource "random_uuid" "workbook_id" {}
+
+resource "azurerm_application_insights_workbook" "app_dashboard" {
+  name = random_uuid.workbook_id.result
+  resource_group_name = azurerm_resource_group.rg.name
+  location = azurerm_resource_group.rg.location
+  display_name = "${var.prefix} api metrics"
+  data_json = jsonencode({
+    version = "Notebook/1.0"
+    items = [
+      {
+        type = 1
+        content = {
+          json = "graphs for scale, rpm, and latency"
+        }
+      },
+      {
+        type = 10
+        name = "replica_graph"
+        content = {
+          chartId = "replica-graph"
+          version = "MetricsItem/2.0"
+          size = 0
+          chartType = 2
+          title = "Replicas"
+        }
+        timeContext = 1200000
+        metrics = [{
+          resourceId = azurerm_container_app.app.id
+          namespace = "microsoft.app/containerapps"
+          name = "Replicas"
+          aggregation = 4
+          columnName = "Active Replicas"
+        }]
+      },
+      {
+        type = 10
+        name = "rpm_graph"
+        content = {
+          chartId = "rpm-graph"
+          version = "MetricsItem/2.0"
+          size = 0
+          chartType = 3 # Area chart
+          title = "Requests per minute"
+          timeContext = {
+            durationMs = 1200000
+          }
+          metrics = [
+            {
+              resourceId = azurerm_container_app.app.id
+              namespace = "microsoft.app/containerapps"
+              name = "Requests"
+              aggregation = 1 # Total (Sum per 1-minute bucket = RPM)
+              columnName = "Requests Per Minute"
+            }
+          ]
+        }
+      },
+      {
+        type = 10
+        name = "latency_graph"
+        content = {
+          chartId = "latency-metric-chart"
+          version = "MetricsItem/2.0"
+          size = 0
+          chartType = 2 # Line chart
+          title = "3. Backend Response Latency (ms)"
+          timeContext = {
+            durationMs = 1200000
+          }
+          metrics = [
+            {
+              resourceId = azurerm_container_app.app.id
+              namespace = "microsoft.app/containerapps"
+              name = "ResponseTime"
+              aggregation = 4 # Average / P95 Latency in milliseconds
+              columnName = "Response Time (ms)"
+            }
+          ]
+        }
+      }
+    ]
+  })
+
+  depends_on = [ azurerm_container_app.app ]
+}
