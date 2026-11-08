@@ -121,9 +121,9 @@ exports.findOneByID = (req, res) => {
 }
 
 exports.findAll = async (req, res) => {
-   const cache_key = `items:all:${JSON.stringify(req.query)}`;
+   const cacheKey = `items:all:${JSON.stringify(req.query)}`;
    try {
-      const cached_data = await redis.get(cache_key);
+      const cached_data = await redis.get(cacheKey);
       if (cached_data) {
          res.setHeader("X-Cache", "HIT");
          return res.json(JSON.parse(cached_data));
@@ -188,7 +188,7 @@ exports.findAll = async (req, res) => {
 
    console.log(sql);
 
-   db.query(sql, params, (rej, data, f) => {
+   db.query(sql, params, async (rej, data, f) => {
       if (rej) {
          console.error(rej);
          return res.status(500).send({ error: "Database error" });
