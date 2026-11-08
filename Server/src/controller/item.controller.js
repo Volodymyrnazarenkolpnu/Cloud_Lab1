@@ -120,7 +120,7 @@ exports.findOneByID = (req, res) => {
    })
 }
 
-exports.findAll = (req, res) => {
+exports.findAll = async (req, res) => {
    const cache_key = `items:all:${JSON.stringify(req.query)}`;
    try {
       const cached_data = await redis.get(cache_key);
