@@ -5,6 +5,7 @@ const CL_APP_ID = process.env.CL_APP_ID;
 const TENANTID = process.env.TENANTID;
 const CL_SECRET = process.env.CL_SECRET;
 const BACKEND_ID = process.env.BACKEND_ID;
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function gettoken() {
     if (CL_SECRET && CL_APP_ID) {
         try {
@@ -33,7 +34,7 @@ async function gettoken() {
     }
 }
 
-async function prepare({method, path, getBody, token, df, mf}) {
+async function prepare({wpath, rpath, token, df, mf}) {
     let nrequests = 0;
     let srequests = 0;
     let frequests = 0;
@@ -42,11 +43,37 @@ async function prepare({method, path, getBody, token, df, mf}) {
     const end_time = start_time + 60 * 1000
     async function worker() {
         while (Date.now() < end_time) {
-            const reqStart = Date.now();
+            for (let a = 0; a <=9; a++){
+                try {
+                    const reqStart = Date.now();
+                    const body = undefined;
+                    const res = await fetch(`${url}/${rpath}`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer: ${token}`
+                        },
+                        body
+                    });
+                    const reqduration = Date.now() - reqStart;
+                    latencies.push(reqduration)
+                    nrequests++;
+                    if (res.status >= 200 && res.status < 400) {
+                        srequests++;
+                    } else {
+                        frequests++;
+                    }
+                } catch (err) {
+                    nrequests++;
+                    frequests++;
+                }
+                await delay(500 + Math.floor(Math.random() * 700));
+            }
             try {
-                const body = getBody ? JSON.stringify(getBody()) : undefined;
-                const res = await fetch(`${url}/${path}`, {
-                    method,
+                const reqStart = Date.now();
+                const body = JSON.stringify({amount: 1, itemid: "1", user: `${Math.floor(Date.now() / 1000)}`});
+                const res = await fetch(`${url}/${wpath}`, {
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer: ${token}`
@@ -65,6 +92,7 @@ async function prepare({method, path, getBody, token, df, mf}) {
                 nrequests++;
                 frequests++;
             }
+            await delay(1000 + Math.floor(Math.random() * 1400));
         }
     }
     await Promise.all(Array.from({length: Math.floor(N * mf / df)}, () => worker()));
@@ -86,24 +114,26 @@ async function main() {
     const token = await gettoken();
     for (let a = 1; a <=5; a++) {
         await prepare({
-            method: "GET",
-            path: "api/getall?SortType=price&SortDirection=ASC&limit=3",
+            wpath: "api/cart",
+            rpath: "api/getall?=&SortType=price&SortDirection=ASC&Limit=0",
             token,
             mf: a,
             df: 5,
         });
     }
-    await prepare({
-            method: "GET",
-            path: "api/getall?SortType=price&SortDirection=ASC&limit=3",
+    for (let a = 1; a <=5; a++) {
+        await prepare({
+            wpath: "api/cart",
+            rpath: "api/getall?=&SortType=price&SortDirection=ASC&Limit=0",
             token,
             mf: 5,
             df: 5,
-    });
+        });
+    }
     for (let a = 5; a >=1; a--) {
         await prepare({
-            method: "GET",
-            path: "api/getall?SortType=price&SortDirection=ASC&limit=3",
+            wpath: "api/cart",
+            rpath: "api/getall?=&SortType=price&SortDirection=ASC&Limit=0",
             token,
             mf: a,
             df: 5,

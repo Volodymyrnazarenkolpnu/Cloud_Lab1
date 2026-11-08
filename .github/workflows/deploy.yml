@@ -45,4 +45,11 @@ jobs:
             --name ${{ secrets.CLIENT_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --image "${{ secrets.ACR_NAME }}.azurecr.io/client:${{ github.sha }}"
+            - name: Deploy Worker Container
+
+          az containerapp update \
+            --name ${{ secrets.WORKER_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --image "${{ secrets.ACR_NAME }}.azurecr.io/server:${{ github.sha }}" \
+            --command "node worker.js"
 

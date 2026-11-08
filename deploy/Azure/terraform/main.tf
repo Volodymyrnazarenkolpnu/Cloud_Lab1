@@ -169,8 +169,13 @@ resource "azurerm_container_app" "app" {
     value = var.db_password
   }
 
+  secret {
+    name = "storage-connection-string"
+    value = azurerm_storage_account.sa.primary_connection_string
+  }
+
   template {
-    min_replicas = 1
+    min_replicas = 0
     max_replicas = 4
     
     custom_scale_rule {
@@ -179,6 +184,17 @@ resource "azurerm_container_app" "app" {
       metadata = {
         type = "Utilization"
         value = "60"
+      }
+    }
+
+    custom_scale_rule {
+      name             = "daytime-schedule"
+      custom_rule_type = "cron"
+      metadata = {
+        timezone        = "UTC"
+        start           = "0 8 * * *"
+        end             = "0 20 * * *"
+        desiredReplicas = "2"
       }
     }
     
@@ -216,6 +232,18 @@ resource "azurerm_container_app" "app" {
         name = "AZURE_CLIENT_ID"
         value = "4aa03e53-cddb-48f7-bfd0-7170c394c6f6"
       }
+      env {
+        name  = "REDIS_HOST"
+        value = azurerm_container_app.redis.name
+      }
+      env {
+        name  = "REDIS_PORT"
+        value = "6379"
+      }
+      env {
+        name = "STORAGE_CONNECTION_STRING"
+        secret_name = "storage-connection-string"
+      }
     }
   }
 
@@ -251,7 +279,7 @@ resource "azurerm_container_app" "client" {
 
   template {
     min_replicas = 1
-    max_replicas = 3
+    max_replicas = 1
 
     container {
       name   = "client"
@@ -282,6 +310,112 @@ resource "azurerm_container_app" "client" {
   }
 }
 
+resource "azurerm_container_app" "redis" {
+  name                         = "${var.prefix}-redis"
+  container_app_environment_id = azurerm_container_app_environment.env.id
+  resource_group_name          = azurerm_resource_group.rg.name
+  revision_mode                = "Single"
+
+  template {
+    min_replicas = 1
+    max_replicas = 1 
+
+    container {
+      name   = "redis"
+      image  = "redis:7.2-alpine"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    external_enabled = false
+    target_port      = 6379
+    exposed_port     = 6379
+    transport        = "tcp"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+
+resource "azurerm_container_app" "worker" {
+  name                         = "${var.prefix}-worker"
+  container_app_environment_id = azurerm_container_app_environment.env.id
+  resource_group_name          = azurerm_resource_group.rg.name
+  revision_mode                = "Single"
+
+  registry {
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
+    password_secret_name = "acr-password"
+  }
+
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.acr.admin_password
+  }
+
+  secret {
+    name  = "db-password"
+    value = var.db_password
+  }
+
+  secret {
+    name  = "storage-connection-string"
+    value = azurerm_storage_account.sa.primary_connection_string
+  }
+
+  template {
+    min_replicas = 0
+    max_replicas = 4
+
+    container {
+      name  = "worker"
+      image = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+      cpu   = 0.25
+      memory = "0.5Gi"
+
+      command = ["node", "worker.js"]
+
+      env {
+        name  = "DATABASE"
+        value = "WEB"
+      }
+      env {
+        name        = "PASSWORD"
+        secret_name = "db-password"
+      }
+      env {
+        name  = "HOST"
+        value = azurerm_mysql_flexible_server.db.fqdn
+      }
+      env {
+        name  = "USER"
+        value = "mysqladmin"
+      }
+      env {
+        name        = "STORAGE_CONNECTION_STRING"
+        secret_name = "storage-connection-string"
+      }
+    }
+  }
+
+}
+
+resource "azurerm_storage_account" "sa" {
+  name                     = "${var.prefix}sa"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_queue" "task_queue" {
+  name                 = "order-queue"
+  storage_account_name   = azurerm_storage_account.sa.name
+}
 
 resource "azurerm_public_ip" "appgw_ip" {
   name                = "${var.prefix}-gw-ip"
@@ -405,6 +539,7 @@ resource "azurerm_log_analytics_workspace" "logs" {
   resource_group_name = azurerm_resource_group.rg.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
+  daily_quota_gb      = 0.1
 }
 
 resource "azurerm_monitor_action_group" "alert_group" {
@@ -431,7 +566,7 @@ resource "azurerm_monitor_metric_alert" "http_5xx_alert" {
     metric_name      = "Requests"
     aggregation      = "Total"
     operator         = "GreaterThan"
-    threshold        = 0
+    threshold        = 1
 
     dimension {
       name     = "statusCodeCategory"
@@ -445,89 +580,372 @@ resource "azurerm_monitor_metric_alert" "http_5xx_alert" {
   }
 }
 
-resource "random_uuid" "workbook_id" {}
-
-resource "azurerm_application_insights_workbook" "app_dashboard" {
-  name = random_uuid.workbook_id.result
+resource "azurerm_monitor_metric_alert" "user_spike_alert" {
+  name                = "${var.prefix}-user-spike"
   resource_group_name = azurerm_resource_group.rg.name
-  location = azurerm_resource_group.rg.location
-  display_name = "${var.prefix} api metrics"
-  data_json = jsonencode({
-    version = "Notebook/1.0"
-    items = [
-      {
-        type = 1
-        content = {
-          json = "graphs for scale, rpm, and latency"
-        }
-      },
-      {
-        type = 10
-        name = "replica_graph"
-        content = {
-          chartId = "replica-graph"
-          version = "MetricsItem/2.0"
-          size = 0
-          chartType = 2
-          title = "Replicas"
-        }
-        timeContext = 1200000
-        metrics = [{
-          resourceId = azurerm_container_app.app.id
-          namespace = "microsoft.app/containerapps"
-          name = "Replicas"
-          aggregation = 4
-          columnName = "Active Replicas"
-        }]
-      },
-      {
-        type = 10
-        name = "rpm_graph"
-        content = {
-          chartId = "rpm-graph"
-          version = "MetricsItem/2.0"
-          size = 0
-          chartType = 3 # Area chart
-          title = "Requests per minute"
-          timeContext = {
-            durationMs = 1200000
-          }
-          metrics = [
-            {
-              resourceId = azurerm_container_app.app.id
-              namespace = "microsoft.app/containerapps"
-              name = "Requests"
-              aggregation = 1 # Total (Sum per 1-minute bucket = RPM)
-              columnName = "Requests Per Minute"
+  scopes              = [azurerm_container_app.app.id]
+  severity            = 2
+  frequency           = "PT1M"
+  window_size         = "PT1M"
+  auto_mitigate       = true
+  criteria {
+    metric_namespace = "Microsoft.App/containerapps"
+    metric_name      = "Requests"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 5000
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.alert_group.id
+  }
+}
+
+resource "azurerm_portal_dashboard" "app_dashboard" {
+  name                = "${var.prefix}-monitoring-dashboard"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  tags = {
+    Environment = "dev"
+    ManagedBy   = "Terraform"
+  }
+
+  dashboard_properties = jsonencode({
+    "lenses": {
+      "0": {
+        "order": 0,
+        "parts": {
+          "0": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "colSpan": 6,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/917c3415-a3fd-4c48-9df2-c4838613d4c8/resourceGroups/cloudlab1-rg/providers/Microsoft.App/containerApps/cloudlab1-app"
+                          },
+                          "name": "Replicas",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.app/containerapps",
+                          "metricVisualization": {
+                            "displayName": "Replica Count",
+                            "resourceDisplayName": "cloudlab1-app"
+                          }
+                        }
+                      ],
+                      "title": "Avg Replica Count for cloudlab1-app",
+                      "titleKind": 1,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1,
+                            "min": 0,
+                            "max": 5
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
             }
-          ]
-        }
-      },
-      {
-        type = 10
-        name = "latency_graph"
-        content = {
-          chartId = "latency-metric-chart"
-          version = "MetricsItem/2.0"
-          size = 0
-          chartType = 2 # Line chart
-          title = "3. Backend Response Latency (ms)"
-          timeContext = {
-            durationMs = 1200000
-          }
-          metrics = [
-            {
-              resourceId = azurerm_container_app.app.id
-              namespace = "microsoft.app/containerapps"
-              name = "ResponseTime"
-              aggregation = 4 # Average / P95 Latency in milliseconds
-              columnName = "Response Time (ms)"
+          },
+          "1": {
+            "position": {
+              "x": 6,
+              "y": 0,
+              "colSpan": 6,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/917c3415-a3fd-4c48-9df2-c4838613d4c8/resourceGroups/cloudlab1-rg/providers/Microsoft.App/containerApps/cloudlab1-app"
+                          },
+                          "name": "CpuPercentage",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.app/containerapps",
+                          "metricVisualization": {
+                            "displayName": "CPU Usage Percentage (Preview)",
+                            "resourceDisplayName": "cloudlab1-app"
+                          }
+                        }
+                      ],
+                      "title": "Avg CPU Usage Percentage (Preview) for cloudlab1-app",
+                      "titleKind": 1,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "utc",
+                    "granularity": "1m",
+                    "relative": "30m"
+                  }
+                }
+              }
             }
-          ]
+          },
+          "2": {
+            "position": {
+              "x": 0,
+              "y": 4,
+              "colSpan": 6,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/917c3415-a3fd-4c48-9df2-c4838613d4c8/resourceGroups/cloudlab1-rg/providers/Microsoft.App/containerApps/cloudlab1-app"
+                          },
+                          "name": "Requests",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.app/containerapps",
+                          "metricVisualization": {
+                            "displayName": "Requests",
+                            "resourceDisplayName": "cloudlab1-app"
+                          }
+                        }
+                      ],
+                      "title": "Sum Requests for cloudlab1-app",
+                      "titleKind": 1,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "3": {
+            "position": {
+              "x": 6,
+              "y": 4,
+              "colSpan": 6,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/917c3415-a3fd-4c48-9df2-c4838613d4c8/resourceGroups/cloudlab1-rg/providers/Microsoft.App/containerApps/cloudlab1-app"
+                          },
+                          "name": "Requests",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.app/containerapps",
+                          "metricVisualization": {
+                            "displayName": "Requests",
+                            "resourceDisplayName": "cloudlab1-app"
+                          }
+                        }
+                      ],
+                      "title": "Sum Requests for cloudlab1-app where Status Code = '500'",
+                      "titleKind": 1,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      },
+                      "filterCollection": {
+                        "filters": [
+                          {
+                            "key": "statusCode",
+                            "operator": 0,
+                            "values": [
+                              "500"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "statusCode": {
+                  "model": {
+                    "operator": "equals",
+                    "values": [
+                      "500"
+                    ]
+                  }
+                }
+              }
+            }
+          }
         }
       }
-    ]
+    },
+    "metadata": {
+      "model": {
+        "timeRange": {
+          "value": {
+            "relative": {
+              "duration": 24,
+              "timeUnit": 1
+            }
+          },
+          "type": "MsPortalFx.Composition.Configuration.ValueTypes.TimeRange"
+        },
+        "filterLocale": {
+          "value": "en-us"
+        },
+        "filters": {
+          "value": {
+            "MsPortalFx_TimeRange": {
+              "model": {
+                "format": "utc",
+                "granularity": "1m",
+                "relative": "30m"
+              },
+              "displayCache": {
+                "name": "UTC Time",
+                "value": "Past 30 minutes"
+              },
+              "filteredPartIds": [
+                "StartboardPart-MonitorChartPart-bed8f145-d509-4ac4-a1aa-afba0ea272f3",
+                "StartboardPart-MonitorChartPart-bed8f145-d509-4ac4-a1aa-afba0ea273e2",
+                "StartboardPart-MonitorChartPart-bed8f145-d509-4ac4-a1aa-afba0ea273f4",
+                "StartboardPart-MonitorChartPart-bed8f145-d509-4ac4-a1aa-afba0ea27400"
+              ]
+            }
+          }
+        }
+      }
+    }
   })
-
-  depends_on = [ azurerm_container_app.app ]
 }

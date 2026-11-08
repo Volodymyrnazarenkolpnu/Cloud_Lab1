@@ -2,6 +2,14 @@ const mysql = require('mysql2')
 const fs = require("fs")
 const util = require("util");
 const { json } = require('stream/consumers');
+const Redis = require("ioredis");
+const redis = new Redis({
+  host: process.env.REDIS_HOST || "localhost",
+  port: process.env.REDIS_PORT || 6379,
+  connectTimeout: 2000,
+  maxRetriesPerRequest: 1
+});
+
 const logFile = fs.createWriteStream('./application.log', { flags: 'a' });
 console.log = function (d) {
   logFile.write(util.format(d) + '\n');
@@ -113,6 +121,18 @@ exports.findOneByID = (req, res) => {
 }
 
 exports.findAll = (req, res) => {
+   const cache_key = `items:all:${JSON.stringify(req.query)}`;
+   try {
+      const cached_data = await redis.get(cache_key);
+      if (cached_data) {
+         res.setHeader("X-Cache", "HIT");
+         return res.json(JSON.parse(cached_data));
+      }
+   } catch (err) {
+      console.warn("redis error");
+   }
+
+
    var { VarOf, MinWeight, MaxWeight, MinPrice, MaxPrice, MinRPM, MaxRPM, SortType, SortDirection, Name, Limit } = req.query;
    let sql = "SELECT * FROM items WHERE 1=1";
    const params = [];
@@ -173,6 +193,13 @@ exports.findAll = (req, res) => {
          console.error(rej);
          return res.status(500).send({ error: "Database error" });
       } else {
+         try {
+            await redis.set(cacheKey, JSON.stringify({ data }), "EX", 45);
+         } catch (err) {
+            console.warn("Redis write error:", err.message);
+         }
+
+         res.setHeader("X-Cache", "MISS");
          res.send({data})
       }
    })
