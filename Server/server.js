@@ -136,7 +136,7 @@ app.post("/api/cart", middleware, idempotency, async (req, res) => {
   const message = {
     taskId,
     user: req.body.user,
-	amont: req.body.amount,
+	amount: req.body.amount,
 	itemid: req.body.itemid,
     createdAt: new Date().toISOString()
   };
