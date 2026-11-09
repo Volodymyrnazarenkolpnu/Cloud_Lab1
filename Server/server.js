@@ -135,8 +135,9 @@ app.post("/api/cart", middleware, idempotency, async (req, res) => {
   const taskId = crypto.randomUUID();
   const message = {
     taskId,
-    userId: req.body.userId,
-    cart: req.body.cart,
+    user: req.body.user,
+	amont: req.body.amount,
+	itemid: req.body.itemid,
     createdAt: new Date().toISOString()
   };
 
