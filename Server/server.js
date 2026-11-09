@@ -9,13 +9,6 @@ const controller = require("./src/controller/item.controller");
 const { error } = require("console");
 const fs = require("fs");
 const mysqlPromise = require("mysql2/promise");
-const { QueueClient } = require("@azure/storage-queue");
-const idempotency = require("./src/redis/idempotency.middleware");
-const queueClient = new QueueClient(
-  process.env.STORAGE_CONNECTION_STRING,
-  "order-queue"
-);
-
 
 const TENANT_ID = process.env.AZURE_TENANT_ID;
 const CLIENT_ID = process.env.AZURE_CLIENT_ID;
@@ -45,7 +38,7 @@ async function restoreDb() {
     }
 	let sql = fs.readFileSync(Spath, "utf8");
     sql = sql.replace(/^\uFEFF/, "").replace(/\/\*[\s\S]*?\*\//g, "");
-	
+
 	const queries = sql
       .split("\n")
       .map(l => l.trim())
@@ -54,7 +47,7 @@ async function restoreDb() {
       .split(";")
       .map(q => q.trim())
       .filter(q => q.length > 0);
-	
+
 	for (const query of queries) {
       try {
         await conn.query(query);
@@ -131,24 +124,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get("/api/getall", middleware, controller.findAll);
 app.get("/api/get/:id",middleware, controller.findOneByID)
 app.get("/api", middleware, (req, res) => {res.send("<p>hi</p>")})
-app.post("/api/cart", middleware, idempotency, async (req, res) => {
-  const taskId = crypto.randomUUID();
-  const message = {
-    taskId,
-    user: req.body.user,
-	amount: req.body.amount,
-	itemid: req.body.itemid,
-    createdAt: new Date().toISOString()
-  };
-
-  await queueClient.sendMessage(Buffer.from(JSON.stringify(message)).toString("base64"));
-
-  return res.status(202).json({
-    status: "Accepted",
-    message: "Your request is queued for processing.",
-    taskId
-  });
-})
+app.post("/api/cart", middleware, controller.addToCart)
 app.get("/api/cart", middleware, controller.getCart)
 app.put("/api/cart/:id", middleware, controller.editCart)
 app.delete("/api/cart/:id", middleware, controller.removeCart)
@@ -167,5 +143,3 @@ restoreDb()
 app.listen(PORT, "0.0.0.0", () => {
         console.log(`Server is running on port ${PORT}.`);
 });
-
-
