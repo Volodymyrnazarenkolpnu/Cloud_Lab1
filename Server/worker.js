@@ -52,6 +52,7 @@ async function startWorker() {
 
       const rawText = Buffer.from(message.messageText, "base64").toString("utf-8");
       const task = JSON.parse(rawText);
+      console.log(task);
 
       const sql = "INSERT INTO cart (item, amount, user) VALUES (?, ?, ?)";
       await db.execute(sql, [task.itemid, task.amount, task.user]);
