@@ -578,6 +578,30 @@ resource "azurerm_monitor_metric_alert" "http_5xx_alert" {
   }
 }
 
+resource "azurerm_monitor_metric_alert" "max_replicas_alert" {
+  name                = "${var.prefix}-max-replicas-alert"
+  resource_group_name = azurerm_resource_group.rg.name
+  scopes              = [azurerm_container_app.app.id]
+  description         = "Fires when the container app scales to its maximum replica ceiling."
+  severity            = 1
+  frequency           = "PT1M"
+  window_size         = "PT1M"
+  auto_mitigate       = true
+
+  criteria {
+    metric_namespace = "microsoft.app/containerapps"
+    metric_name      = "Replicas"
+    aggregation      = "Maximum"
+    operator         = "GreaterThanOrEqual"
+    
+    threshold        = 4 
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.alert_group.id
+  }
+}
+
 resource "azurerm_monitor_metric_alert" "user_spike_alert" {
   name                = "${var.prefix}-user-spike"
   resource_group_name = azurerm_resource_group.rg.name
