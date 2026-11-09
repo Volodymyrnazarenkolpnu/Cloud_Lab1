@@ -368,7 +368,7 @@ resource "azurerm_container_app" "worker" {
   }
 
   template {
-    min_replicas = 0
+    min_replicas = 1
     max_replicas = 4
 
     container {
@@ -376,8 +376,6 @@ resource "azurerm_container_app" "worker" {
       image = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
       cpu   = 0.25
       memory = "0.5Gi"
-
-      command = ["node", "worker.js"]
 
       env {
         name  = "DATABASE"

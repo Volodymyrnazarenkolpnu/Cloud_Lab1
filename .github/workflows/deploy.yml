@@ -34,6 +34,10 @@ jobs:
           docker build -t $CLIENT_TAG ./Client
           docker push $CLIENT_TAG
 
+          WORKER_TAG="${{ secrets.ACR_NAME }}.azurecr.io/worker:${{ github.sha }}"
+          docker build -t $WORKER_TAG ./Worker
+          docker push $WORKER_TAG
+
       - name: Deploy to azure
         run: |
           az containerapp update \
@@ -49,6 +53,5 @@ jobs:
           az containerapp update \
             --name ${{ secrets.WORKER_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --image "${{ secrets.ACR_NAME }}.azurecr.io/server:${{ github.sha }}" \
-            --command "node worker.js"
+            --image "${{ secrets.ACR_NAME }}.azurecr.io/worker:${{ github.sha }}" 
 
