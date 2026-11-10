@@ -38,12 +38,13 @@ async function prepare({wpath, rpath, token, df, mf}) {
     let nrequests = 0;
     let srequests = 0;
     let frequests = 0;
+    let cachehits = 0;
     const latencies = [];
     const start_time = Date.now();
     const end_time = start_time + 60 * 1000
     async function worker() {
         while (Date.now() < end_time) {
-            const idempotencyKey = crypto.randomUUID();
+            const idempotency = crypto.randomUUID();
             for (let a = 0; a <=9; a++){
                 try {
                     const reqStart = Date.now();
@@ -56,6 +57,9 @@ async function prepare({wpath, rpath, token, df, mf}) {
                         },
                         body
                     });
+                    if (res.headers.get("x-cache") == "HIT") {
+                    cachehits++;
+                    }
                     const reqduration = Date.now() - reqStart;
                     latencies.push(reqduration)
                     nrequests++;
@@ -91,6 +95,7 @@ async function prepare({wpath, rpath, token, df, mf}) {
                     frequests++;
                 }
             } catch (err) {
+                console.log(err);
                 nrequests++;
                 frequests++;
             }
@@ -110,6 +115,7 @@ async function prepare({wpath, rpath, token, df, mf}) {
     console.log(`latencyAvg: ${avglatency}`);
     console.log(`p95 ${p95}`);
     console.log(`P99 ${p99}`);
+    console.log(`cache hits: ${cachehits / nrequests * 100}%`)
 }
 
 async function main() {

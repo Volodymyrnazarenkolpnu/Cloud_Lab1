@@ -10,11 +10,11 @@ const redis = new Redis({
   maxRetriesPerRequest: 1
 });
 
-const logFile = fs.createWriteStream('./application.log', { flags: 'a' });
-console.log = function (d) {
-  logFile.write(util.format(d) + '\n');
-  process.stdout.write(util.format(d) + '\n');
-};
+// const logFile = fs.createWriteStream('./application.log', { flags: 'a' });
+// console.log = function (d) {
+//   logFile.write(util.format(d) + '\n');
+//   process.stdout.write(util.format(d) + '\n');
+// };
 
 const db = mysql.createPool(
    {
@@ -29,10 +29,10 @@ const db = mysql.createPool(
 
 exports.editCart = (req, res) => {
    const id = req.params.id;
-   console.log(id)
+   // console.log(id)
    var { item, amount, user } = req.query;
    let sql = 'UPDATE cart SET user = ?, amount = ?, item = ? WHERE id = ?'
-   console.log(sql);
+   // console.log(sql);
    item = JSON.parse(item);
    amount = JSON.parse(amount);
    user = JSON.parse(user);
@@ -48,10 +48,10 @@ exports.editCart = (req, res) => {
 
 exports.getCart = (req, res) => {
    let {userid} = req.query;
-   console.log(userid)
+   // console.log(userid)
    userid = JSON.parse(userid);
    let sql = `SELECT * FROM cart WHERE user = ?`;
-   console.log(sql);
+   // console.log(sql);
    db.query(sql, [userid], (rej, data, f) => {
       if (rej) {
          res.send({data: []})
@@ -64,7 +64,7 @@ exports.getCart = (req, res) => {
 exports.removeCart = (req, res) => {
    const id = req.params.id;
    let sql = `DELETE FROM cart WHERE id = ${id}`
-   console.log(sql);
+   // console.log(sql);
    db.query(sql, (rej, data, f) => {
       if (rej) {
          console.error(rej);
@@ -78,7 +78,7 @@ exports.removeCart = (req, res) => {
 exports.clearCart = (req, res) => {
    let user = req.params.user
    let sql = `DELETE FROM cart WHERE user = ${user}`
-    console.log(sql);
+   //  console.log(sql);
    db.query(sql, (rej, data, f) => {
       if (rej) {
          console.error(rej);
@@ -93,9 +93,9 @@ exports.addToCart = (req, res) => {
    const itemid = req.body.itemid
    const amount = req.body.amount
    const user = req.body.user
-   console.log(amount)
+   // console.log(amount)
    let sql = `INSERT INTO cart (item, amount, user) VALUES (${itemid}, ${amount}, ${user})`
-   console.log(sql);
+   // console.log(sql);
    db.query(sql, (rej, data, f) => {
       if (rej) {
          console.error(rej);
@@ -109,7 +109,7 @@ exports.addToCart = (req, res) => {
 exports.findOneByID = (req, res) => {
    const id = req.params.id;
    let sql = "SELECT * FROM items WHERE id = ?"
-   console.log(sql);
+   // console.log(sql);
    db.query(sql, [id], (rej, data, f) => {
       if (rej) {
          console.error(rej);
@@ -137,7 +137,7 @@ exports.findAll = async (req, res) => {
    let sql = "SELECT * FROM items WHERE 1=1";
    const params = [];
 
-   console.log(VarOf);
+   // console.log(VarOf);
 
    if (MinWeight) {
       MinWeight = JSON.parse(MinWeight);
@@ -186,7 +186,7 @@ exports.findAll = async (req, res) => {
    Limit = JSON.parse(Limit)
    sql += ` LIMIT ${3 + Limit}`
 
-   console.log(sql);
+   // console.log(sql);
 
    db.query(sql, params, async (rej, data, f) => {
       if (rej) {

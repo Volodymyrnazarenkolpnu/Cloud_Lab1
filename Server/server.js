@@ -83,7 +83,6 @@ const middleware = (req, res, next) => {
 	const clientHeader = req.headers["x-client-key"];
 	if (clientHeader === "client-token-lab1") {
 		req.user = { client: "frontend-spa" };
-		console.log("accepted")
 		return next();
   	}
 	const headers = req.headers.authorization
@@ -94,7 +93,6 @@ const middleware = (req, res, next) => {
 		})
 	}
 	const token = headers.split(" ")[1]
-	console.log(token);
 	jwt.verify(token, GetKey, {
 		audience: [CLIENT_ID, `api://${CLIENT_ID}`],
 		issuer: [

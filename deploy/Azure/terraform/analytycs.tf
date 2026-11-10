@@ -303,6 +303,124 @@ resource "azurerm_portal_dashboard" "app_dashboard" {
                 }
               }
             }
+          },
+          "4": {
+            "position": {
+              "x": 12,
+              "y": 0,
+              "colSpan": 6,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "ResourceId",
+                  "value": "/subscriptions/917c3415-a3fd-4c48-9df2-c4838613d4c8/resourceGroups/cloudlab1-rg/providers/Microsoft.Insights/components/cloudlab1-appinsights"
+                },
+                {
+                  "name": "ComponentId",
+                  "value": {
+                    "SubscriptionId": "917c3415-a3fd-4c48-9df2-c4838613d4c8",
+                    "ResourceGroup": "cloudlab1-rg",
+                    "Name": "cloudlab1-appinsights",
+                    "LinkedApplicationType": 0,
+                    "ResourceId": "/subscriptions/917c3415-a3fd-4c48-9df2-c4838613d4c8/resourceGroups/cloudlab1-rg/providers/Microsoft.Insights/components/cloudlab1-appinsights",
+                    "ResourceType": "microsoft.insights/components",
+                    "IsAzureFirst": false
+                  }
+                },
+                {
+                  "name": "TargetBlade",
+                  "value": "Performance"
+                },
+                {
+                  "name": "DataModel",
+                  "value": {
+                    "version": "1.0.0",
+                    "experience": 1,
+                    "clientTypeMode": "Server",
+                    "timeContext": {
+                      "durationMs": 1800000
+                    },
+                    "prefix": "let OperationIdsWithExceptionType = (excType: string) { exceptions | where timestamp > ago(30m) \n    | where tobool(iff(excType == \"null\", isempty(type), type == excType)) \n    | distinct operation_ParentId };\nlet OperationIdsWithFailedReqResponseCode = (respCode: string) { requests | where timestamp > ago(30m)\n    | where iff(respCode == \"null\", isempty(resultCode), resultCode == respCode) and success == false \n    | distinct id };\nlet OperationIdsWithFailedDependencyType = (depType: string) { dependencies | where timestamp > ago(30m)\n    | where iff(depType == \"null\", isempty(type), type == depType) and success == false \n    | distinct operation_ParentId };\nlet OperationIdsWithFailedDepResponseCode = (respCode: string) { dependencies | where timestamp > ago(30m)\n    | where iff(respCode == \"null\", isempty(resultCode), resultCode == respCode) and success == false \n    | distinct operation_ParentId };\nlet OperationIdsWithExceptionBrowser = (browser: string) { exceptions | where timestamp > ago(30m)\n    | where tobool(iff(browser == \"null\", isempty(client_Browser), client_Browser == browser)) \n    | distinct operation_ParentId };",
+                    "percentile": 3,
+                    "grain": "1m",
+                    "selectedOperation": null,
+                    "selectedOperationName": null,
+                    "filters": []
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "Version",
+                  "value": "1.0"
+                }
+              ],
+              "type": "Extension/AppInsightsExtension/PartType/PerformanceCuratedPinnedChartPart",
+              "asset": {
+                "idInputName": "ResourceId",
+                "type": "ApplicationInsights"
+              }
+            }
+          },
+          "5": {
+            "position": {
+              "x": 12,
+              "y": 4,
+              "colSpan": 6,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "ResourceId",
+                  "value": "/subscriptions/917c3415-a3fd-4c48-9df2-c4838613d4c8/resourceGroups/cloudlab1-rg/providers/Microsoft.Insights/components/cloudlab1-appinsights"
+                },
+                {
+                  "name": "ComponentId",
+                  "value": {
+                    "SubscriptionId": "917c3415-a3fd-4c48-9df2-c4838613d4c8",
+                    "ResourceGroup": "cloudlab1-rg",
+                    "Name": "cloudlab1-appinsights",
+                    "LinkedApplicationType": 0,
+                    "ResourceId": "/subscriptions/917c3415-a3fd-4c48-9df2-c4838613d4c8/resourceGroups/cloudlab1-rg/providers/Microsoft.Insights/components/cloudlab1-appinsights",
+                    "ResourceType": "microsoft.insights/components",
+                    "IsAzureFirst": false
+                  }
+                },
+                {
+                  "name": "TargetBlade",
+                  "value": "Performance"
+                },
+                {
+                  "name": "DataModel",
+                  "value": {
+                    "version": "1.0.0",
+                    "experience": 1,
+                    "clientTypeMode": "Server",
+                    "timeContext": {
+                      "durationMs": 1800000
+                    },
+                    "prefix": "let OperationIdsWithExceptionType = (excType: string) { exceptions | where timestamp > ago(30m) \n    | where tobool(iff(excType == \"null\", isempty(type), type == excType)) \n    | distinct operation_ParentId };\nlet OperationIdsWithFailedReqResponseCode = (respCode: string) { requests | where timestamp > ago(30m)\n    | where iff(respCode == \"null\", isempty(resultCode), resultCode == respCode) and success == false \n    | distinct id };\nlet OperationIdsWithFailedDependencyType = (depType: string) { dependencies | where timestamp > ago(30m)\n    | where iff(depType == \"null\", isempty(type), type == depType) and success == false \n    | distinct operation_ParentId };\nlet OperationIdsWithFailedDepResponseCode = (respCode: string) { dependencies | where timestamp > ago(30m)\n    | where iff(respCode == \"null\", isempty(resultCode), resultCode == respCode) and success == false \n    | distinct operation_ParentId };\nlet OperationIdsWithExceptionBrowser = (browser: string) { exceptions | where timestamp > ago(30m)\n    | where tobool(iff(browser == \"null\", isempty(client_Browser), client_Browser == browser)) \n    | distinct operation_ParentId };",
+                    "percentile": 4,
+                    "grain": "1m",
+                    "selectedOperation": null,
+                    "selectedOperationName": null,
+                    "filters": []
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "Version",
+                  "value": "1.0"
+                }
+              ],
+              "type": "Extension/AppInsightsExtension/PartType/PerformanceCuratedPinnedChartPart",
+              "asset": {
+                "idInputName": "ResourceId",
+                "type": "ApplicationInsights"
+              }
+            }
           }
         }
       }
