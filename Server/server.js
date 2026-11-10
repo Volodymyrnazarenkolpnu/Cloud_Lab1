@@ -1,3 +1,5 @@
+const appInsights = require("applicationinsights");
+appInsights.setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING).setAutoCollectRequests(true).setAutoCollectPerformance(true, true).setAutoCollectExceptions(true).setAutoCollectDependencies(true).setSendLiveMetrics(true).start();
 const jwt = require("jsonwebtoken");
 const jwksClient = require("jwks-rsa");
 const express = require("express");
@@ -11,8 +13,6 @@ const fs = require("fs");
 const mysqlPromise = require("mysql2/promise");
 const { QueueClient } = require("@azure/storage-queue");
 const idempotency = require("./src/redis/idempotency.middleware");
-const appInsights = require("applicationinsights");
-appInsights.setup().start();
 const queueClient = new QueueClient(
   process.env.STORAGE_CONNECTION_STRING,
   "order-queue"
