@@ -111,6 +111,10 @@ resource "azurerm_container_app" "app" {
         name = "STORAGE_CONNECTION_STRING"
         secret_name = "storage-connection-string"
       }
+      env {
+        name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        value = azurerm_application_insights.appinsights.connection_string
+      }
     }
   }
 

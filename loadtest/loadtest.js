@@ -43,6 +43,7 @@ async function prepare({wpath, rpath, token, df, mf}) {
     const end_time = start_time + 60 * 1000
     async function worker() {
         while (Date.now() < end_time) {
+            const idempotencyKey = crypto.randomUUID();
             for (let a = 0; a <=9; a++){
                 try {
                     const reqStart = Date.now();
@@ -76,7 +77,8 @@ async function prepare({wpath, rpath, token, df, mf}) {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer: ${token}`
+                        "Authorization": `Bearer: ${token}`,
+                        "idempotency-key": `${idempotency}`
                     },
                     body
                 });
