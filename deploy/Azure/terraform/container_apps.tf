@@ -64,6 +64,11 @@ resource "azurerm_container_app" "app" {
         desiredReplicas = "2"
       }
     }
+
+    http_scale_rule {
+      name                = "http-scaling-rule"
+      concurrent_requests = "30"
+    }
     
     container {
       name   = "server"
