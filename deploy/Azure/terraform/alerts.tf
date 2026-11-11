@@ -1,12 +1,3 @@
-resource "azurerm_log_analytics_workspace" "logs" {
-  name                = "${var.prefix}-law"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-  daily_quota_gb      = 0.1
-}
-
 resource "azurerm_monitor_action_group" "alert_group" {
   name                = "${var.prefix}-action-group"
   resource_group_name = azurerm_resource_group.rg.name

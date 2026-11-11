@@ -39,6 +39,7 @@ async function prepare({wpath, rpath, token, df, mf}) {
     let srequests = 0;
     let frequests = 0;
     let cachehits = 0;
+    let rrequests = 0;
     const latencies = [];
     const start_time = Date.now();
     const end_time = start_time + 60 * 1000
@@ -63,6 +64,7 @@ async function prepare({wpath, rpath, token, df, mf}) {
                     const reqduration = Date.now() - reqStart;
                     latencies.push(reqduration)
                     nrequests++;
+                    rrequests++;
                     if (res.status >= 200 && res.status < 400) {
                         srequests++;
                     } else {
@@ -70,6 +72,7 @@ async function prepare({wpath, rpath, token, df, mf}) {
                     }
                 } catch (err) {
                     nrequests++;
+                    rrequests++;
                     frequests++;
                 }
                 await delay(500 + Math.floor(Math.random() * 700));
@@ -115,7 +118,7 @@ async function prepare({wpath, rpath, token, df, mf}) {
     console.log(`latencyAvg: ${avglatency}`);
     console.log(`p95 ${p95}`);
     console.log(`P99 ${p99}`);
-    console.log(`cache hits: ${cachehits / nrequests * 100}%`)
+    console.log(`cache hits: ${cachehits / rrequests * 100}%`)
 }
 
 async function main() {

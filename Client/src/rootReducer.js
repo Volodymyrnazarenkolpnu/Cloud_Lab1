@@ -16,9 +16,10 @@ const sqlCommandsSlice = createSlice({
         },
         commands_execute: (state, action) => {
             let token = getToken()
+            let idempotency = crypto.randomUUID();
             for (let command of state.commands) {
                 if (command.type == 0) {
-                    axios.post(command.command, command.args ? command.args : null, {headers: {"x-client-key" : `${token}`}})
+                    axios.post(command.command, command.args ? command.args : null, {headers: {"x-client-key" : `${token}`, "idempotency-key": `${idempotency}`}})
                 } else if (command.type == 1) {
                     axios.put(command.command, {headers: {"x-client-key" : `${token}`}})
                     console.log("a")
